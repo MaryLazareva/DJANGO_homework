@@ -2,6 +2,8 @@ from django.http import HttpResponse
 from django.shortcuts import render
 import logging
 
+from web_app.models import Order
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,3 +28,12 @@ def about(request):
 
     logger.info('Успешный вход на страницу')
     return HttpResponse(html)
+
+
+def info(request, order_id):
+    order = Order.objects.get(pk=order_id)
+    products_list = ', '.join([f'{product.name} (Price: {product.price})' for product in order.products.all()])
+    total_price = order.get_total_price()
+    return HttpResponse(f'{order.customer.name} has Order{order.id}, total_sum is {total_price}:<br>.'
+                        f'{products_list}<br>'
+                        f'Registrated at {order.customer.date_registrated} ')

@@ -17,6 +17,12 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=8, decimal_places=2)
     count = models.IntegerField()
+    image = models.ImageField(
+        upload_to='product_photo',  # Подпапка в MEDIA_ROOT, где будут сохраняться изображения
+        verbose_name='Image',
+        null=True,  # Разрешаем значение NULL в базе данных
+        blank=True  # Разрешаем поле быть пустым в формах
+    )
 
     def __str__(self):
         return f'Product: {self.name}, Price: {self.price}'

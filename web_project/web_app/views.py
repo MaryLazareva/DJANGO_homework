@@ -1,10 +1,13 @@
 from datetime import timedelta
+
+from django.core.files.storage import FileSystemStorage
 from django.utils import timezone
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 import logging
 
-from web_app.models import Order, Customer, OrderItem
+from web_app.form import ProductForm
+from web_app.models import Order, Customer, OrderItem, Product
 
 logger = logging.getLogger(__name__)
 
@@ -86,3 +89,33 @@ def show_recent_orders(request, customer_id):
         'customer': customer
     }
     return render(request, "web_app/recent_orders.html", context)
+
+
+def edit_product(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    if request.method == 'POST':
+        form =ProductForm(request.POST, request.FILES, instance=product) #  instance=product позволяет избежать создания нового экземпляра продукта при каждом сохранении формы, а вместо этого обновлять уже существующий
+        message = 'Ошибка в данных'
+        if form.is_valid():
+            form.save()
+            message = f'Продукт с id = {product_id} отредактирован'
+            form = ProductForm()  # Очистить форму после успешного добавления
+    else:
+        form = ProductForm(instance=product)
+        message = 'Заполните форму'
+    return render(request, "web_app/edit_product.html", {'form': form, 'message': message})
+
+
+def add_product(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        message = 'Ошибка в данных'
+        if form.is_valid():
+            form.save()
+            message = f'Продукт  добавлен'
+            form = ProductForm()  # Очистить форму после успешного добавления
+            return render(request, "web_app/add_product.html", {'form': form, 'message': message})
+    else:
+        form =ProductForm()
+        message = 'Заполните форму'
+    return render(request, 'web_app/add_product.html', {'form':form, 'message': message})
